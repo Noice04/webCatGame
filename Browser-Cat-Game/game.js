@@ -14,13 +14,31 @@ function resizeCanvas() {
 
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
+const backgroundImage = new Image();
 
+backgroundImage.src = "Assets/water.png";
 
 // ------------------------------
 // FISH
-// ------------------------------
+// ---------------------  ---------
 
 const fish = [];
+
+//just for readability
+const saltwater = "Assets/Critters of Yonder - Gone Fishing/Critters of Yonder - Gone Fishing/Saltwater Fish/";
+const freshwater = "Assets/Critters of Yonder - Gone Fishing/Critters of Yonder - Gone Fishing/Freshwater Fish/";
+//there are more fish in the assets but this should suffice
+const fishFiles =[
+    freshwater + "Angelfish.png",
+    freshwater + "Bluegill.png",
+    saltwater + "Anchovy.png",
+];
+
+const fishImages = fishFiles.map(function(file) {
+    const image = new Image();
+    image.src = file;
+    return image;
+});
 
 const fishColors = [
     "#ffb703",
@@ -31,19 +49,19 @@ const fishColors = [
 ];
 
 function createFish() {
-    const size = 35 + Math.random() * 20;
+    const size = 35 + Math.random() * 40;
 
     return {
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
 
         size: size,
-        speed: 50 + Math.random() * 70,
+        speed: 200 + Math.random() * 70 - size,
 
         direction: Math.random() * Math.PI * 2,
-
-        color: fishColors[
-            Math.floor(Math.random() * fishColors.length)
+        
+        image: fishImages[
+            Math.floor(Math.random()* fishImages.length)
         ],
 
         tailTime: Math.random() * 10,
@@ -51,6 +69,27 @@ function createFish() {
         scared: 0,
         speedBoost: 1
     };
+}
+//-------------------------------
+//create bubbles
+//---------------------------------
+const bubbles = [];
+
+function createBubble() {
+    const size = 3 + Math.random() * 12;
+
+    return {
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        size: size,
+        speed: 15 + Math.random() * 35,
+        wobble: Math.random() * Math.PI * 2
+    };
+}
+
+// Create 30 bubbles to start with.
+for (let i = 0; i < 30; i++) {
+    bubbles.push(createBubble());
 }
 
 // Create five fish.
@@ -107,6 +146,22 @@ function drawPawRipples(dt) {
 // ------------------------------
 // BACKGROUND
 // ------------------------------
+/*
+function drawBackground() {
+    if (!backgroundImage.complete ||
+        backgroundImage.naturalWidth === 0) {
+        return;
+    }
+
+    ctx.drawImage(
+        backgroundImage,
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+    );
+}
+*/
 
 function drawBackground() {
     const gradient = ctx.createLinearGradient(
@@ -146,90 +201,91 @@ function drawBackground() {
         ctx.stroke();
     }
 }
+    
 
+// -------------------------------
+// move and draw Bubbles
+//-------------------------------
+function updateBubbles(dt) {
+    for (const bubble of bubbles) {
+        bubble.y -= bubble.speed * dt;
+
+        // Gently move the bubble from side to side.
+        bubble.x += Math.sin(bubble.wobble) * 15 * dt;
+        bubble.wobble += dt * 2;
+
+        // Reset the bubble when it floats offscreen.
+        if (bubble.y < -bubble.size) {
+            bubble.y = window.innerHeight + bubble.size;
+            bubble.x = Math.random() * window.innerWidth;
+        }
+    }
+}
+
+function drawBubbles() {
+    for (const bubble of bubbles) {
+        ctx.beginPath();
+
+        ctx.arc(
+            bubble.x,
+            bubble.y,
+            bubble.size,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Small highlight to make the bubble look shiny.
+        ctx.beginPath();
+        ctx.arc(
+            bubble.x - bubble.size * 0.3,
+            bubble.y - bubble.size * 0.3,
+            bubble.size * 0.2,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.fill();
+    }
+}
 
 // ------------------------------
 // DRAW FISH
 // ------------------------------
 
 function drawFish(f) {
+    //only draws fish once png is loaded
+    if (!f.image.complete || f.image.naturalWidth === 0) {
+        return;
+    }
+
     ctx.save();
 
+    // movement
     ctx.translate(f.x, f.y);
-    ctx.rotate(f.direction);
 
-    // Wiggle the tail.
-    const tailWiggle = Math.sin(f.tailTime) * 8;
+    // rotates the fish towards where its faceing
+    ctx.rotate(f.direction +19.5);
 
-    // Tail.
-    ctx.fillStyle = f.color;
+    // Preserve the PNG's original proportions.
+    const aspectRatio =
+        f.image.naturalHeight / f.image.naturalWidth;
 
-    ctx.beginPath();
+    const width = f.size;
+    const height = width * aspectRatio;
 
-    ctx.moveTo(-f.size * 0.35, 0);
-
-    ctx.lineTo(
-        -f.size * 0.8,
-        -f.size * 0.35 + tailWiggle
+    // Draw the image centered on the fish.
+    ctx.drawImage(
+        f.image,
+        -width / 2,
+        -height / 2,
+        width,
+        height
     );
-
-    ctx.lineTo(
-        -f.size * 0.8,
-        f.size * 0.35 + tailWiggle
-    );
-
-    ctx.closePath();
-    ctx.fill();
-
-    // Body.
-    ctx.beginPath();
-
-    ctx.ellipse(
-        0, 0,
-        f.size * 0.55,
-        f.size * 0.35,
-        0, 0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-    // Fin.
-    ctx.beginPath();
-
-    ctx.moveTo(-5, 0);
-    ctx.lineTo(0, -f.size * 0.4);
-    ctx.lineTo(10, 0);
-
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
-    ctx.fill();
-
-    // Eye.
-    ctx.beginPath();
-
-    ctx.arc(
-        f.size * 0.3,
-        -f.size * 0.05,
-        4,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fillStyle = "white";
-    ctx.fill();
-
-    ctx.beginPath();
-
-    ctx.arc(
-        f.size * 0.32,
-        -f.size * 0.05,
-        2,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fillStyle = "#17202a";
-    ctx.fill();
 
     ctx.restore();
 }
@@ -331,9 +387,14 @@ function gameLoop(time) {
     // Prevent large jumps after the browser pauses.
     dt = Math.min(dt, 0.05);
 
+    updateBubbles(dt);
+
     drawBackground();
 
     drawPawRipples(dt);
+
+    drawBubbles();
+
 
     for (const f of fish) {
         updateFish(f, dt);
