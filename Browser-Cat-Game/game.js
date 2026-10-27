@@ -60,11 +60,12 @@ function createFish() {
         tailTime: Math.random() * 10,
 
         scared: 0,
-        speedBoost: 1
+        scaredCount:0,
+        speedBoost: 2
     };
 }
 //-------------------------------
-//create bubbles
+//create bubbles and 5 fish
 //---------------------------------
 const bubbles = [];
 
@@ -231,6 +232,23 @@ function drawBubbles() {
 }
 
 // ------------------------------
+// SPAWN FSIH
+// ------------------------------
+let cd = 0;
+function fishSpawner(dt){
+  cd += dt;
+
+  if (cd >= 3){
+    fish.push(createFish());
+    cd =0;
+  }
+ 
+}
+
+
+
+
+// ------------------------------
 // DRAW FISH
 // ------------------------------
 
@@ -359,6 +377,7 @@ function scareFish(pointerX, pointerY) {
             // Flee for 1.5 seconds.
             f.scared = 1.5;
             f.speedBoost = 3;
+            f.scaredCount +=1; //function where if touched after scared 2 times gets deleted
         }
     }
 }
@@ -390,6 +409,8 @@ function gameLoop(time) {
     drawPawRipples(dt);
 
     drawBubbles();
+
+    fishSpawner(dt);
 
 
     for (const f of fish) {
