@@ -25,44 +25,43 @@ backgroundImage.src = "Assets/water.png";
 const fish = [];
 
 //just for readability
-const saltwater = "Assets/Critters of Yonder - Gone Fishing/Critters of Yonder - Gone Fishing/Saltwater Fish/";
-const freshwater = "Assets/Critters of Yonder - Gone Fishing/Critters of Yonder - Gone Fishing/Freshwater Fish/";
+const spearfishingpacket = "Assets/SpearFishing Assets Pack/SpearFishing Assets Pack/Sprites/"
+//const saltwater = "Assets/Critters of Yonder - Gone Fishing/Critters of Yonder - Gone Fishing/Saltwater Fish/";
+//const freshwater = "Assets/Critters of Yonder - Gone Fishing/Critters of Yonder - Gone Fishing/Freshwater Fish/";
 //there are more fish in the assets but this should suffice
-const fishFiles =[
-    freshwater + "Angelfish.png",
-    freshwater + "Bluegill.png",
-    saltwater + "Anchovy.png",
-];
 
+const fishFiles = [
+    spearfishingpacket+ "Fish2 - 32x16/Blue.png",
+    spearfishingpacket+ "Fish1 - 16x16/Orange.png",
+    //freshwater + "Bluegill.png",
+    //saltwater + "Anchovy.png",
+];
+/*
 const fishImages = fishFiles.map(function(file) {
     const image = new Image();
     image.src = file;
     return image;
 });
+*/
+const blueFishSprite = new Image();
 
-const fishColors = [
-    "#ffb703",
-    "#ff5d8f",
-    "#80ed99",
-    "#bdb2ff",
-    "#ff7b00"
-];
+blueFishSprite.src =
+    spearfishingpacket + "Fish2 - 32x16/Blue.png";
 
 function createFish() {
-    const size = 35 + Math.random() * 40;
+    const size = 40 + Math.random() * 90;
 
     return {
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
 
         size: size,
-        speed: 200 + Math.random() * 70 - size,
+        // did minus size just so the smaller fish feel faster when they flee
+        speed: 200 + Math.random() * 70 - (size/2),
 
         direction: Math.random() * Math.PI * 2,
         
-        image: fishImages[
-            Math.floor(Math.random()* fishImages.length)
-        ],
+        image: blueFishSprite,
 
         tailTime: Math.random() * 10,
 
@@ -258,33 +257,43 @@ function drawBubbles() {
 // ------------------------------
 
 function drawFish(f) {
-    //only draws fish once png is loaded
     if (!f.image.complete || f.image.naturalWidth === 0) {
         return;
     }
 
+    // 32 pixels wide 16 tall  only works if its blue fish2
+    const frameWidth = 32;
+    const frameHeight = 16;
+
+    // We have 32 frames.
+    const frameCount = 32;
+
+    // Choose which frame to display.
+    const frame = Math.floor(f.tailTime * 4) % frameCount;
+
+    // Calculate where that frame starts in the image.
+    const sourceY = Math.floor(frame / 8) * frameHeight; 
+    const sourceX = (frame % 8) * frameWidth;
+
     ctx.save();
 
-    // movement
+    // Position and rotate the fish as before.
     ctx.translate(f.x, f.y);
+    ctx.rotate(f.direction + 19);
 
-    // rotates the fish towards where its faceing
-    ctx.rotate(f.direction +19.5);
-
-    // Preserve the PNG's original proportions.
-    const aspectRatio =
-        f.image.naturalHeight / f.image.naturalWidth;
-
-    const width = f.size;
-    const height = width * aspectRatio;
-
-    // Draw the image centered on the fish.
+    // Draw just one frame from the sprite sheet.
     ctx.drawImage(
         f.image,
-        -width / 2,
-        -height / 2,
-        width,
-        height
+
+        sourceX,       // Where to start horizontally in the image
+        sourceY,             // Where to start vertically
+        frameWidth,    // Width of the frame to extract
+        frameHeight,   // Height of the frame to extract
+
+        -f.size / 2,   // Where to draw it on the canvas (X)
+        -f.size / 4,   // Where to draw it on the canvas (Y)
+        f.size,        // Display width
+        f.size / 2     // Display height
     );
 
     ctx.restore();
