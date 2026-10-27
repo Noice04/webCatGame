@@ -22,7 +22,7 @@ backgroundImage.src = "Assets/water.png";
 // FISH
 // ---------------------  ---------
 
-const fish = [];
+let fish = [];
 
 //just for readability
 const spearfishingpacket = "Assets/SpearFishing Assets Pack/SpearFishing Assets Pack/Sprites/"
@@ -43,12 +43,12 @@ const fishImages = fishFiles.map(function(file) {
 function createFish() {
     let size = 40 + Math.random() * 90;
     const fishtype = Math.floor(Math.random()*fishImages.length);
-    console.log(fishtype);
     return {
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
 
         size: size,
+
         // did minus size just so the smaller fish feel faster when they flee
         speed: 200 + Math.random() * 70 - (size/2),
 
@@ -87,7 +87,7 @@ for (let i = 0; i < 30; i++) {
 }
 
 // Create five fish.
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < 7; i++) {
     fish.push(createFish());
 }
 
@@ -238,7 +238,7 @@ let cd = 0;
 function fishSpawner(dt){
   cd += dt;
 
-  if (cd >= 3){
+  if (cd >= 3 && fish.length<12){
     fish.push(createFish());
     cd =0;
   }
@@ -283,7 +283,7 @@ function drawFish(f) {
 
     // Position and rotate the fish as before.
     ctx.translate(f.x, f.y);
-    ctx.rotate(f.direction + 19);
+    ctx.rotate(f.direction);
 
     // Draw just one frame from the sprite sheet.
     ctx.drawImage(
@@ -298,7 +298,7 @@ function drawFish(f) {
         -f.size / 4,   // Where to draw it on the canvas (Y)
         
         f.color==0? f.size/2 : f.size,        // Display width
-        f.size / 2     // Display height
+        f.size /2    // Display height
     );
 
     ctx.restore();
@@ -353,6 +353,7 @@ function updateFish(f, dt) {
     if (f.scared <= 0 && Math.random() < 0.01) {
         f.direction += (Math.random() - 0.5);
     }
+    
 }
 
 
@@ -368,7 +369,7 @@ function scareFish(pointerX, pointerY) {
         const dy = f.y - pointerY;
 
         const distance = Math.hypot(dx, dy);
-
+        
         // A nearby paw scares the fish.
         if (distance < f.size + 60) {
             // Turn away from the paw.
@@ -417,7 +418,7 @@ function gameLoop(time) {
         updateFish(f, dt);
         drawFish(f);
     }
-
+    fish = fish.filter(f => f.scaredCount <= 3); 
     requestAnimationFrame(gameLoop);
 }
 
