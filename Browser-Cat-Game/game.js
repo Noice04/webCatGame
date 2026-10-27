@@ -26,31 +26,24 @@ const fish = [];
 
 //just for readability
 const spearfishingpacket = "Assets/SpearFishing Assets Pack/SpearFishing Assets Pack/Sprites/"
-//const saltwater = "Assets/Critters of Yonder - Gone Fishing/Critters of Yonder - Gone Fishing/Saltwater Fish/";
-//const freshwater = "Assets/Critters of Yonder - Gone Fishing/Critters of Yonder - Gone Fishing/Freshwater Fish/";
-//there are more fish in the assets but this should suffice
 
 const fishFiles = [
-    spearfishingpacket+ "Fish2 - 32x16/Blue.png",
     spearfishingpacket+ "Fish1 - 16x16/Orange.png",
-    //freshwater + "Bluegill.png",
-    //saltwater + "Anchovy.png",
+    spearfishingpacket+ "Fish2 - 32x16/Blue.png",
+    spearfishingpacket+ "Fish3 - 32x16/Red.png",
+    spearfishingpacket+ "Shark - 32x32/Shark.png",
 ];
-/*
+
 const fishImages = fishFiles.map(function(file) {
     const image = new Image();
     image.src = file;
     return image;
 });
-*/
-const blueFishSprite = new Image();
-
-blueFishSprite.src =
-    spearfishingpacket + "Fish2 - 32x16/Blue.png";
 
 function createFish() {
-    const size = 40 + Math.random() * 90;
-
+    let size = 40 + Math.random() * 90;
+    const fishtype = Math.floor(Math.random()*fishImages.length);
+    console.log(fishtype);
     return {
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
@@ -61,7 +54,8 @@ function createFish() {
 
         direction: Math.random() * Math.PI * 2,
         
-        image: blueFishSprite,
+        image: fishImages[fishtype],
+        color: fishtype,
 
         tailTime: Math.random() * 10,
 
@@ -145,22 +139,6 @@ function drawPawRipples(dt) {
 // ------------------------------
 // BACKGROUND
 // ------------------------------
-/*
-function drawBackground() {
-    if (!backgroundImage.complete ||
-        backgroundImage.naturalWidth === 0) {
-        return;
-    }
-
-    ctx.drawImage(
-        backgroundImage,
-        0,
-        0,
-        window.innerWidth,
-        window.innerHeight
-    );
-}
-*/
 
 function drawBackground() {
     const gradient = ctx.createLinearGradient(
@@ -260,13 +238,21 @@ function drawFish(f) {
     if (!f.image.complete || f.image.naturalWidth === 0) {
         return;
     }
-
-    // 32 pixels wide 16 tall  only works if its blue fish2
-    const frameWidth = 32;
-    const frameHeight = 16;
-
     // We have 32 frames.
-    const frameCount = 32;
+    let frameCount = 32;
+
+    let frameWidth = 16;
+    let frameHeight = 16;
+    // based of the spritesheet dimensions
+    if (f.color < 3 && f.color != 0){
+         frameWidth = 32;
+         frameHeight = 16;
+    }else if (f.color == 3) {  
+        frameWidth = 32;
+        frameHeight = 32;
+        frameCount = 16;
+    }
+    
 
     // Choose which frame to display.
     const frame = Math.floor(f.tailTime * 4) % frameCount;
@@ -286,13 +272,14 @@ function drawFish(f) {
         f.image,
 
         sourceX,       // Where to start horizontally in the image
-        sourceY,             // Where to start vertically
+        sourceY,       // Where to start vertically
         frameWidth,    // Width of the frame to extract
         frameHeight,   // Height of the frame to extract
 
         -f.size / 2,   // Where to draw it on the canvas (X)
         -f.size / 4,   // Where to draw it on the canvas (Y)
-        f.size,        // Display width
+        
+        f.color==0? f.size/2 : f.size,        // Display width
         f.size / 2     // Display height
     );
 
